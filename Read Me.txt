@@ -1,0 +1,55 @@
+=============
+Obtain Python
+=============
+Embedded Python
+It is meant for this:
+  “I just need Python to run a few pure-Python scripts with no external modules.”
+If you need anything more, the embedded ZIP cannot work without heavy manual patching.
+
+What real applications do (including commercial apps)
+- Bundle a full Python installation inside your app
+  - Download the full version from https://www.python.org/ftp/python/  (Using 3.13.7 for these steps)
+  - Obtain the full working version for the OS you are developing on (In this case, Windows => python-3.13.7-amd64.zip)
+
+=============
+Create a solution
+=============
+Create an application using Visual Studio
+
+=============
+=============
+=============
+=============
+=============
+=============
+Prepare Copilot's Solution
+=============
+- Extract the file EmbedPythonFullSolution.zip
+- Move the contents of EmbedPythonFullVS up 1 directory
+- Remove directory EmbedPythonFullVS
+
+=============
+Obtain Python
+=============
+- Create the directory .\EmbedPythonFullSolution\python_embed
+- Extract the downloaded into the directory .\EmbedPythonFullSolution\python_embed
+
+=============
+Obtain IPython
+=============
+- Open a command window
+- Change Directory to the extracted version (CD <Directory>)
+- Create a venv inside your project (This creates python_env\ with its own Lib\site-packages.):
+  - C:\Work\Code\Testing\C# (.NET 8)\EmbedPythonFullSolution\EmbedPythonExample> python -m venv python_env
+- Activate the venv:
+  - python_env\Scripts\activate
+- Install IPython inside the venv:
+  - ".\python.exe" -m pip install --upgrade pip setuptools wheel
+  - ".\python.exe" -m pip install --upgrade --target=".\Lib\site-packages" ipython
+- Verify (Should show the path inside python_env\Lib\site-packages\IPython.):
+  - python_env\Scripts\python.exe -c "import IPython; print(IPython.__file__)"
+
+=============
+Fix the Solution
+=============
+-- Too many changes.  Re-creating the zip to use

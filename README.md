@@ -58,3 +58,19 @@ Step 4: Verify isolation
 
 # Add Nuget Packages
 - pythonnet by Conan, denfromufa, pythonnet
+
+# Update the prject file
+Add the following to the bottom of your .csproj file:
+	<ItemGroup>
+		<!-- embed runtime Python distribution -->
+		<Content Include="py_e\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+
+		<!-- ensure python scripts are copied to build/publish output -->
+		<Content Include="py_scripts\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>

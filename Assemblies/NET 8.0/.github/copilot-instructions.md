@@ -15,6 +15,20 @@ Always read and follow it before generating code.
 - Always ensure code compiles.
 - Include the directory py_e in the project root for the embedded Python distribution._
 
+## C# Language and Formatting Rules
+
+- Target framework: .NET 8 (net8.0)
+- Language version: C# 12
+- Use classic, explicit C# syntax
+
+### Namespace Rules
+- Use block-scoped namespaces only
+- Example:
+  ```csharp
+  namespace MyCompany.MyProduct.Services
+  {
+  }
+
 ## Architecture
 - Controllers → Services → Repositories → DbContext → SQL
 - Use Dependency Injection via the Program.cs builder.

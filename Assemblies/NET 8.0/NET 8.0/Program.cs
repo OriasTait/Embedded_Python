@@ -1,125 +1,230 @@
-﻿using Python.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 
-namespace Embedded_IPython
-// using classic style namespace declaration because .NET 8 duplicates the namespace calls without it.
-// example to call main method:
-// Without: Embedded_IPython.Embedded_IPython.Program.Main()
-// With: Embedded_IPython.Program.Main()
-
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace Embedded_Python
+#pragma warning restore IDE0130 // Namespace does not match folder structure
+/*=============
+using classic style namespace declaration because .NET 8 duplicates the namespace calls
+without it.  Example to call main method:
+- With:     Embedded_IPython.Program.Main()
+- Without:  Embedded_IPython.Embedded_IPython.Program.Main()
+=============*/
 {
     internal static class Program
-    {
+        {
         static void Main(/*string[] args*/)
         {
-            // Must be set before any libraries that may use BinaryFormatter are loaded
-            AppContext.SetSwitch(
-            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization",
-            true);
-
-            string pythonEmbedPath = Path.Combine(AppContext.BaseDirectory, "py_e");
-            string pythonDllName = "python313.dll";
-
-            Environment.SetEnvironmentVariable("PYTHONHOME", pythonEmbedPath);
-
+            // Initialize Python environment
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string pythonPath = Path.Combine(baseDir, "Python");
-            string pythonScriptsPath = Path.Combine(baseDir, "py_scripts");
+            string pythonHome = Path.Combine(baseDir, "py_e");
+            string pythonMyScripts = Path.Combine(baseDir, "py_scripts");
+            string pythonLib = Path.Combine(pythonHome, "Lib");
+            string pythonExe = Path.Combine(pythonHome, "python.exe");
+            Environment.SetEnvironmentVariable("PYTHONHOME", pythonHome);
+            Environment.SetEnvironmentVariable("PYTHONPATH", pythonLib);
 
-            Environment.SetEnvironmentVariable("PYTHONPATH", pythonPath);
-
-            Environment.SetEnvironmentVariable(
-                "PYTHONNET_PYDLL",
-                Path.Combine(pythonEmbedPath, pythonDllName));
-
-            PythonEngine.Initialize();
-
-            try
+            // hardcoded example of running a python script
+            ProcessStartInfo psi = new ProcessStartInfo
             {
-                using (Py.GIL()) // Python Global Interpreter Lock
+                FileName = pythonExe,
+                Arguments = "-c \"import sys; print(sys.version); print('Hello from embedded Python!')\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            // Replace using declarations with using statements for C# 7.3 compatibility
+            using (Process proc = Process.Start(psi)!)
+            using (StreamReader reader = proc.StandardOutput)
+            {
+                string output = reader.ReadToEnd();
+                Console.WriteLine(output);
+            }
+
+            // Run a second example with a script file
+            string scriptRelativePath = pythonMyScripts + "\\hello.py";
+            string scriptPath = Path.Combine(baseDir, scriptRelativePath);
+            string quotedScriptPath = QuoteForCmd(scriptPath);
+            string[]? scriptArgs = null;
+
+            string quotedArgs = string.Empty;
+            string arguments = string.Empty;
+
+
+            if (scriptArgs == null || scriptArgs.Length == 0)
+            {
+                quotedArgs = string.Empty;
+            }
+            else
+            {
+                // Quote each argument so cmd.exe handles spaces correctly
+                string[] quotedArguments = Array.ConvertAll(
+                    scriptArgs,
+                    arg => QuoteForCmd(arg)
+                );
+
+                // Join arguments with spaces and add a leading space
+                quotedArgs = " " + string.Join(" ", quotedArguments);
+            }
+            arguments = quotedScriptPath + quotedArgs;
+
+            // Reuse ProcessStartInfo to run the script
+            psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            // Read both streams and wait for exit to avoid deadlocks
+            using (Process proc = Process.Start(psi)!)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                string error = proc.StandardError.ReadToEnd();
+                proc.WaitForExit();
+
+                Console.WriteLine(output);
+                if (!string.IsNullOrEmpty(error))
                 {
-                    dynamic sys = Py.Import("sys");
-                    // folder containing IPython and dependencies
-                    sys.path.append("embedded_py_libs");
+                    Console.Error.WriteLine(error);
+                }
 
-                    // Configure IPython to run in embedded mode without spawning 
-                    // new shells
-                    dynamic os = Py.Import("os");
-                    os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1".ToPython();
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
+            }
 
-                    // Import IPython modules
-                    dynamic interactiveshellModule =
-                        Py.Import("IPython.core.interactiveshell");
-                    dynamic InteractiveShell =
-                        interactiveshellModule.GetAttr("InteractiveShell");
+            // Run the second example script file with parameters
+            scriptRelativePath = pythonMyScripts + "\\hello.py";
+            scriptPath = Path.Combine(baseDir, scriptRelativePath);
+            quotedScriptPath = QuoteForCmd(scriptPath);
+            scriptArgs = new string[] { "arg1", "arg 2" };
 
-                    // Create shell instance with configuration to prevent subprocess 
-                    // spawning
-                    dynamic shell = InteractiveShell.InvokeMethod("instance");
+            if (scriptArgs == null || scriptArgs.Length == 0)
+            {
+                quotedArgs = string.Empty;
+            }
+            else
+            {
+                // Quote each argument so cmd.exe handles spaces correctly
+                string[] quotedArguments = Array.ConvertAll(
+                    scriptArgs,
+                    arg => QuoteForCmd(arg)
+                );
 
-                    // Store reference to properly dispose
-                    PyObject systemDelegate = null;
-                    try
-                    {
-                        systemDelegate = new Func<string, object>((cmd) =>
-                        {
-                            Console.WriteLine($"Blocked system call: {cmd}");
-                            return null;
-                        }).ToPython();
-                        shell.system = systemDelegate;
+                // Join arguments with spaces and add a leading space
+                quotedArgs = " " + string.Join(" ", quotedArguments);
+            }
+            arguments = quotedScriptPath + quotedArgs;
 
-                        string To_Run = string.Empty;
+            // Reuse ProcessStartInfo to run the script
+            psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                        // Run a normal Python line
-                        To_Run = $"print('Hello from IPython shell!')";
-                        shell.run_cell(To_Run);
+            // Read both streams and wait for exit to avoid deadlocks
+            using (Process proc = Process.Start(psi)!)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                string error = proc.StandardError.ReadToEnd();
+                proc.WaitForExit();
 
-                        // Run a magic command
-                        To_Run = $"%timeit sum(range(1000))";
-                        shell.run_cell(To_Run);
+                Console.WriteLine(output);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Console.Error.WriteLine(error);
+                }
 
-                        // Run external Python scripts with arguments
-                        To_Run =
-                            $"\"{Path.Combine(pythonScriptsPath,
-                            "add_numbers.py\" 5 7")}\"";
-                        shell.run_line_magic("run", To_Run);
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
+            }
 
-                        To_Run =
-                            $"\"{Path.Combine(pythonScriptsPath,
-                            "make_message.py\" Tim")}\"";
-                        shell.run_line_magic("run", To_Run);
+            // Create a python script and run it
+            scriptRelativePath = pythonMyScripts + "\\Dynamic.py";
+            scriptPath = Path.Combine(baseDir, scriptRelativePath);
 
-                        To_Run =
-                            $"\"{Path.Combine(pythonScriptsPath,
-                            "autocompress.py\" -h")}\"";
-                        shell.run_line_magic("run", To_Run);
-                    }
-                    finally
-                    {
-                        // Properly dispose the delegate wrapper before shutdown
-                        if (systemDelegate != null)
-                        {
-                            shell.system = null;
-                            systemDelegate.Dispose();
-                        }
-                    }
+            // Create the directory if it doesn't exist
+            if (!File.Exists(scriptPath))
+            {
+                var dirName = Path.GetDirectoryName(scriptPath);
+                if (!string.IsNullOrEmpty(dirName)) // Fix: ensure dirName is not null
+                {
+                    Directory.CreateDirectory(dirName); // No dereference of null
                 }
             }
-            finally
+
+            File.WriteAllText(scriptPath,
+@"import sys
+print(sys.executable)
+print(sys.version)
+print('Hello from external Dynamic Python script file!')
+print('Received args:', sys.argv[1:])");
+
+            quotedScriptPath = QuoteForCmd(scriptPath);
+            scriptArgs = new string[] { "arg3", "arg 4" };
+
+            if (scriptArgs == null || scriptArgs.Length == 0)
             {
-                PythonEngine.Shutdown();
+                quotedArgs = string.Empty;
+            }
+            else
+            {
+                // Quote each argument so cmd.exe handles spaces correctly
+                string[] quotedArguments = Array.ConvertAll(
+                    scriptArgs,
+                    arg => QuoteForCmd(arg)
+                );
+
+                // Join arguments with spaces and add a leading space
+                quotedArgs = " " + string.Join(" ", quotedArguments);
+            }
+            arguments = quotedScriptPath + quotedArgs;
+
+            // Reuse ProcessStartInfo to run the script
+            psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            // Read both streams and wait for exit to avoid deadlocks
+            using (Process proc = Process.Start(psi)!)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                string error = proc.StandardError.ReadToEnd();
+                proc.WaitForExit();
+
+                Console.WriteLine(output);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Console.Error.WriteLine(error);
+                }
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
-            Console.WriteLine("\nPress any key to exit...");
+            // Wait for the user to press a key before exiting
+            Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
+        } // static void Main(string[] args)
 
+        static string QuoteForCmd(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return "\"\"";
 
-            Console.WriteLine("Press Enter to exit...");
-            Console.ReadLine();
-        } // namespace Embedded_IPython
-    } // static void Main
-} // internal static class Program
-
+            return "\"" + s.Replace("\"", "\\\"") + "\"";
+        }
+    } // internal static class Program
+} // namespace Embedded_Python

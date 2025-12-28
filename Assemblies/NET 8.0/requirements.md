@@ -4,7 +4,7 @@
 Embedded Python
 
 ## Tech Stack
-- C# .NET 8
+- C# .NET 8.0
 - SQLite (for simplicity)
 
 ## Core Features

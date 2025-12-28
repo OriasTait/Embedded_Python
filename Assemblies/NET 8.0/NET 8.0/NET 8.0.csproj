@@ -10,10 +10,7 @@
 
   <ItemGroup>
     <Folder Include="py_scripts\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="pythonnet" Version="3.0.5" />
+    <Folder Include="py_e\" />
   </ItemGroup>
 
 	<ItemGroup>

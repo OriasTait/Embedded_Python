@@ -6,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//=============
+// Aliases
+//=============
+using Con = System.Console;
+
 namespace Embedded_Python
 {
     internal static partial class Program
@@ -21,26 +26,29 @@ namespace Embedded_Python
             Environment.SetEnvironmentVariable("PYTHONHOME", pythonHome);
             Environment.SetEnvironmentVariable("PYTHONPATH", pythonLib);
 
-            // hardcoded example of running a python script
+            // Hardcoded inline -c example: print only standard output (no errors/exit codes/prompts)
+            Con.WriteLine("Running inline -c example:");
+
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = pythonExe,
-                Arguments = "-c \"import sys; print(sys.version); print('Hello from embedded Python!')\"",
+                Arguments = "-c \"import sys; print(sys.version); "
+                          + "print('Hello from embedded Python!')\"",
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // kept for safety, but not printed
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            // Replace using declarations with using statements for C# 7.3 compatibility
             using (Process proc = Process.Start(psi))
             using (StreamReader reader = proc.StandardOutput)
             {
                 string output = reader.ReadToEnd();
+                proc.WaitForExit();
                 Console.WriteLine(output);
             }
 
-            // Run a second example with a script file
+            Con.WriteLine("Running script hello.py without arguments:");
+            // Run a script file: print only standard output
             string scriptRelativePath = pythonMyScripts + "\\hello.py";
             string scriptPath = Path.Combine(baseDir, scriptRelativePath);
             string quotedScriptPath = QuoteForCmd(scriptPath);
@@ -55,45 +63,29 @@ namespace Embedded_Python
             }
             else
             {
-                // Quote each argument so cmd.exe handles spaces correctly
-                string[] quotedArguments = Array.ConvertAll(
-                    scriptArgs,
-                    arg => QuoteForCmd(arg)
-                );
-
-                // Join arguments with spaces and add a leading space
+                string[] quotedArguments = Array.ConvertAll(scriptArgs, arg => QuoteForCmd(arg));
                 quotedArgs = " " + string.Join(" ", quotedArguments);
             }
             arguments = quotedScriptPath + quotedArgs;
 
-            // Reuse ProcessStartInfo to run the script
             psi = new ProcessStartInfo
             {
                 FileName = pythonExe,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // not printed
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            // Read both streams and wait for exit to avoid deadlocks
             using (Process proc = Process.Start(psi))
             {
                 string output = proc.StandardOutput.ReadToEnd();
-                string error = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
-
                 Console.WriteLine(output);
-                if (!string.IsNullOrEmpty(error))
-                {
-                    Console.Error.WriteLine(error);
-                }
-
-                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
-            // Run the second example script file with parameters
+            // Run the script with parameters
+            Con.WriteLine("Running script hello.py with arguments:");
             scriptRelativePath = pythonMyScripts + "\\hello.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
             quotedScriptPath = QuoteForCmd(scriptPath);
@@ -105,52 +97,104 @@ namespace Embedded_Python
             }
             else
             {
-                // Quote each argument so cmd.exe handles spaces correctly
-                string[] quotedArguments = Array.ConvertAll(
-                    scriptArgs,
-                    arg => QuoteForCmd(arg)
-                );
-
-                // Join arguments with spaces and add a leading space
+                string[] quotedArguments = Array.ConvertAll(scriptArgs, arg => QuoteForCmd(arg));
                 quotedArgs = " " + string.Join(" ", quotedArguments);
             }
             arguments = quotedScriptPath + quotedArgs;
 
-            // Reuse ProcessStartInfo to run the script
             psi = new ProcessStartInfo
             {
                 FileName = pythonExe,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // not printed
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            // Read both streams and wait for exit to avoid deadlocks
             using (Process proc = Process.Start(psi))
             {
                 string output = proc.StandardOutput.ReadToEnd();
-                string error = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
-
                 Console.WriteLine(output);
-                if (!string.IsNullOrEmpty(error))
-                {
-                    Console.Error.WriteLine(error);
-                }
-
-                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
-            // Create a python script and run it
+            // Run the add_numbers.py script with parameters
+            Con.WriteLine("Running script add_numbers.py with arguments:");
+            scriptRelativePath = pythonMyScripts + "\\add_numbers.py";
+            scriptPath = Path.Combine(baseDir, scriptRelativePath);
+            quotedScriptPath = QuoteForCmd(scriptPath);
+            scriptArgs = new string[] { "5", "7" };
+
+            if (scriptArgs == null || scriptArgs.Length == 0)
+            {
+                quotedArgs = string.Empty;
+            }
+            else
+            {
+                string[] quotedArguments = Array.ConvertAll(scriptArgs, arg => QuoteForCmd(arg));
+                quotedArgs = " " + string.Join(" ", quotedArguments);
+            }
+            arguments = quotedScriptPath + quotedArgs;
+
+            psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true, // not printed
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using (Process proc = Process.Start(psi))
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                Console.WriteLine(output);
+            }
+
+
+            // Run the make_message.py script with parameters
+            Con.WriteLine("Running script add_numbers.py with arguments:");
+            scriptRelativePath = pythonMyScripts + "\\make_message.py";
+            scriptPath = Path.Combine(baseDir, scriptRelativePath);
+            quotedScriptPath = QuoteForCmd(scriptPath);
+            scriptArgs = new string[] { "Orias" };
+
+            if (scriptArgs == null || scriptArgs.Length == 0)
+            {
+                quotedArgs = string.Empty;
+            }
+            else
+            {
+                string[] quotedArguments = Array.ConvertAll(scriptArgs, arg => QuoteForCmd(arg));
+                quotedArgs = " " + string.Join(" ", quotedArguments);
+            }
+            arguments = quotedScriptPath + quotedArgs;
+
+            psi = new ProcessStartInfo
+            {
+                FileName = pythonExe,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true, // not printed
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using (Process proc = Process.Start(psi))
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                Console.WriteLine(output);
+            }
+
+            // Create a python script and run it: print only standard output
+            Con.WriteLine("Running dynamically created script with arguments:");
             scriptRelativePath = pythonMyScripts + "\\Dynamic.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
 
-            // Create the directory if it doesn't exist
             if (!File.Exists(scriptPath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(scriptPath) );
+                Directory.CreateDirectory(Path.GetDirectoryName(scriptPath));
             }
 
             File.WriteAllText(scriptPath,
@@ -169,47 +213,30 @@ print('Received args:', sys.argv[1:])");
             }
             else
             {
-                // Quote each argument so cmd.exe handles spaces correctly
-                string[] quotedArguments = Array.ConvertAll(
-                    scriptArgs,
-                    arg => QuoteForCmd(arg)
-                );
-
-                // Join arguments with spaces and add a leading space
+                string[] quotedArguments = Array.ConvertAll(scriptArgs, arg => QuoteForCmd(arg));
                 quotedArgs = " " + string.Join(" ", quotedArguments);
             }
             arguments = quotedScriptPath + quotedArgs;
 
-            // Reuse ProcessStartInfo to run the script
             psi = new ProcessStartInfo
             {
                 FileName = pythonExe,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // not printed
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            // Read both streams and wait for exit to avoid deadlocks
             using (Process proc = Process.Start(psi))
             {
                 string output = proc.StandardOutput.ReadToEnd();
-                string error = proc.StandardError.ReadToEnd();
                 proc.WaitForExit();
-
                 Console.WriteLine(output);
-                if (!string.IsNullOrEmpty(error))
-                {
-                    Console.Error.WriteLine(error);
-                }
-
-                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
             // Wait for the user to press a key before exiting
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            Con.WriteLine("Press any key to exit...");
+            Con.ReadKey();
         } // static void Main(/*string[] args*/)
     } // internal class Program
 } // Embedded_Python

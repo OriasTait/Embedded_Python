@@ -15,6 +15,7 @@ Always read and follow it before generating code.
 - Always ensure code compiles.
 - Include the directory py_e in the project root for the embedded Python distribution.
 - Use wordwrap at 95 characters.
+- Add comments to explain the modifications you made.
 
 ## C# Language and Formatting Rules
 
@@ -45,3 +46,4 @@ When asked to "generate" app modules:
 - Do not ignore naming conventions.
 - Do not output partial code unless explicitly asked.
 - Do not excede 95 characters per line.
+- Do not remove existing comments.

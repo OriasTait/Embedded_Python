@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Embedded_Python
+namespace NET_4_8
 {
     internal static partial class Program
     {
@@ -18,4 +18,4 @@ namespace Embedded_Python
             return "\"" + s.Replace("\"", "\\\"") + "\"";
         } // static string QuoteForCmd(string s)
     } // internal class Program
-} // Embedded_Python
+} // namespace NET_4_8

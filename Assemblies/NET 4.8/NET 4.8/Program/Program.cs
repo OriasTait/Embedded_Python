@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 //=============
 using Con = System.Console;
 
-namespace Embedded_Python
+namespace NET_4_8
 {
     internal static partial class Program
     {
@@ -26,7 +26,7 @@ namespace Embedded_Python
             Environment.SetEnvironmentVariable("PYTHONHOME", pythonHome);
             Environment.SetEnvironmentVariable("PYTHONPATH", pythonLib);
 
-            // Hardcoded inline -c example: print only standard output (no errors/exit codes/prompts)
+            // Hardcoded inline -c example
             Con.WriteLine("Running inline -c example:");
 
             ProcessStartInfo psi = new ProcessStartInfo
@@ -45,10 +45,13 @@ namespace Embedded_Python
                 string output = reader.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
+            // Run the hello.py script without parameters
             Con.WriteLine("Running script hello.py without arguments:");
-            // Run a script file: print only standard output
+
             string scriptRelativePath = pythonMyScripts + "\\hello.py";
             string scriptPath = Path.Combine(baseDir, scriptRelativePath);
             string quotedScriptPath = QuoteForCmd(scriptPath);
@@ -82,10 +85,13 @@ namespace Embedded_Python
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
-            // Run the script with parameters
+            // Run the hello.py script with parameters
             Con.WriteLine("Running script hello.py with arguments:");
+
             scriptRelativePath = pythonMyScripts + "\\hello.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
             quotedScriptPath = QuoteForCmd(scriptPath);
@@ -116,10 +122,13 @@ namespace Embedded_Python
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
             // Run the add_numbers.py script with parameters
             Con.WriteLine("Running script add_numbers.py with arguments:");
+
             scriptRelativePath = pythonMyScripts + "\\add_numbers.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
             quotedScriptPath = QuoteForCmd(scriptPath);
@@ -150,11 +159,13 @@ namespace Embedded_Python
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
-            }
 
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
+            }
 
             // Run the make_message.py script with parameters
             Con.WriteLine("Running script add_numbers.py with arguments:");
+
             scriptRelativePath = pythonMyScripts + "\\make_message.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
             quotedScriptPath = QuoteForCmd(scriptPath);
@@ -185,10 +196,13 @@ namespace Embedded_Python
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
-            // Create a python script and run it: print only standard output
+            // Create a python script and run it
             Con.WriteLine("Running dynamically created script with arguments:");
+
             scriptRelativePath = pythonMyScripts + "\\Dynamic.py";
             scriptPath = Path.Combine(baseDir, scriptRelativePath);
 
@@ -232,6 +246,8 @@ print('Received args:', sys.argv[1:])");
                 string output = proc.StandardOutput.ReadToEnd();
                 proc.WaitForExit();
                 Console.WriteLine(output);
+
+                Console.WriteLine($"Python exit code: {proc.ExitCode}\n");
             }
 
             // Wait for the user to press a key before exiting
@@ -239,4 +255,4 @@ print('Received args:', sys.argv[1:])");
             Con.ReadKey();
         } // static void Main(/*string[] args*/)
     } // internal class Program
-} // Embedded_Python
+} // namespace NET_4_8

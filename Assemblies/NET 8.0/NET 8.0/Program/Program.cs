@@ -1,15 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace Embedded_Python
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace NET_8._0.Program
+#pragma warning restore IDE0130 // Namespace does not match folder structure
+/*=============
+using classic style namespace declaration because .NET 8 duplicates the namespace calls
+without it.  Example to call main method:
+- With:     Embedded_IPython.Program.Main()
+- Without:  Embedded_IPython.Embedded_IPython.Program.Main()
+=============*/
 {
     internal static class Program
-    {
+        {
+        static string QuoteForCmd(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return "\"\"";
+
+            return "\"" + s.Replace("\"", "\\\"") + "\"";
+        } // static string QuoteForCmd(string s)
+
         static void Main(/*string[] args*/)
         {
             // Initialize Python environment
@@ -33,7 +43,7 @@ namespace Embedded_Python
             };
 
             // Replace using declarations with using statements for C# 7.3 compatibility
-            using (Process proc = Process.Start(psi))
+            using (Process proc = Process.Start(psi)!)
             using (StreamReader reader = proc.StandardOutput)
             {
                 string output = reader.ReadToEnd();
@@ -44,10 +54,11 @@ namespace Embedded_Python
             string scriptRelativePath = pythonMyScripts + "\\hello.py";
             string scriptPath = Path.Combine(baseDir, scriptRelativePath);
             string quotedScriptPath = QuoteForCmd(scriptPath);
-            string[] scriptArgs = null;
+            string[]? scriptArgs = null;
 
             string quotedArgs = string.Empty;
             string arguments = string.Empty;
+
 
             if (scriptArgs == null || scriptArgs.Length == 0)
             {
@@ -78,7 +89,7 @@ namespace Embedded_Python
             };
 
             // Read both streams and wait for exit to avoid deadlocks
-            using (Process proc = Process.Start(psi))
+            using (Process proc = Process.Start(psi)!)
             {
                 string output = proc.StandardOutput.ReadToEnd();
                 string error = proc.StandardError.ReadToEnd();
@@ -128,7 +139,7 @@ namespace Embedded_Python
             };
 
             // Read both streams and wait for exit to avoid deadlocks
-            using (Process proc = Process.Start(psi))
+            using (Process proc = Process.Start(psi)!)
             {
                 string output = proc.StandardOutput.ReadToEnd();
                 string error = proc.StandardError.ReadToEnd();
@@ -150,7 +161,11 @@ namespace Embedded_Python
             // Create the directory if it doesn't exist
             if (!File.Exists(scriptPath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(scriptPath) );
+                var dirName = Path.GetDirectoryName(scriptPath);
+                if (!string.IsNullOrEmpty(dirName)) // Fix: ensure dirName is not null
+                {
+                    Directory.CreateDirectory(dirName); // No dereference of null
+                }
             }
 
             File.WriteAllText(scriptPath,
@@ -192,7 +207,7 @@ print('Received args:', sys.argv[1:])");
             };
 
             // Read both streams and wait for exit to avoid deadlocks
-            using (Process proc = Process.Start(psi))
+            using (Process proc = Process.Start(psi)!)
             {
                 string output = proc.StandardOutput.ReadToEnd();
                 string error = proc.StandardError.ReadToEnd();
@@ -211,13 +226,5 @@ print('Received args:', sys.argv[1:])");
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         } // static void Main(string[] args)
-
-        static string QuoteForCmd(string s)
-        {
-            if (string.IsNullOrEmpty(s))
-                return "\"\"";
-
-            return "\"" + s.Replace("\"", "\\\"") + "\"";
-        }
-    } // internal class Program
-} // Embedded_Python
+    } // internal static class Program
+} // namespace Embedded_Python

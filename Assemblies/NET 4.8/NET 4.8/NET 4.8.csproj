@@ -43,30 +43,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Program\QuoteForCmd.cs" />
+    <Compile Include="Program\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="py_e\" />
-    <Folder Include="py_scripts\" />
+    <!-- embed runtime Python distribution -->
+    <Content Include="py_e\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <!-- ensure python scripts are copied to build/publish output -->
+    <Content Include="py_scripts\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
-
-		<ItemGroup>
-			<!-- embed runtime Python distribution -->
-			<Content Include="py_e\**\*">
-				<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-			</Content>
-
-			<!-- ensure python scripts are copied to build/publish output -->
-			<Content Include="py_scripts\**\*">
-				<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-			</Content>
-		</ItemGroup>
-
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
